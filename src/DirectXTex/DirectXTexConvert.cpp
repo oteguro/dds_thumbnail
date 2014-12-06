@@ -1296,13 +1296,13 @@ bool _LoadScanline( XMVECTOR* pDestination, size_t count,
 
                 // http://msdn.microsoft.com/en-us/library/windows/desktop/dd206750.aspx
 
-                // Yí  = Y - 16
-                // Cbí = Cb - 128
-                // Crí = Cr - 128
+                // YÅE = Y - 16
+                // CbÅE= Cb - 128
+                // CrÅE= Cr - 128
 
-                // R = 1.1644Yí + 1.5960Crí
-                // G = 1.1644Yí - 0.3917Cbí - 0.8128Crí
-                // B = 1.1644Yí + 2.0172Cbí
+                // R = 1.1644YÅE+ 1.5960CrÅE
+                // G = 1.1644YÅE- 0.3917CbÅE- 0.8128CrÅE
+                // B = 1.1644YÅE+ 2.0172CbÅE
 
                 int r = (298 * y +           409 * v + 128) >> 8;
                 int g = (298 * y - 100 * u - 208 * v + 128) >> 8;
@@ -1332,13 +1332,13 @@ bool _LoadScanline( XMVECTOR* pDestination, size_t count,
 
                 // http://msdn.microsoft.com/en-us/library/windows/desktop/bb970578.aspx
 
-                // Yí  = Y - 64
-                // Cbí = Cb - 512
-                // Crí = Cr - 512
+                // YÅE = Y - 64
+                // CbÅE= Cb - 512
+                // CrÅE= Cr - 512
 
-                // R = 1.1678Yí + 1.6007Crí
-                // G = 1.1678Yí - 0.3929Cbí - 0.8152Crí
-                // B = 1.1678Yí + 2.0232Cbí
+                // R = 1.1678YÅE+ 1.6007CrÅE
+                // G = 1.1678YÅE- 0.3929CbÅE- 0.8152CrÅE
+                // B = 1.1678YÅE+ 2.0232CbÅE
 
                 int r = static_cast<int>( (76533 * y +              104905 * v + 32768) >> 16 );
                 int g = static_cast<int>( (76533 * y -  25747 * u -  53425 * v + 32768) >> 16 );
@@ -1368,13 +1368,13 @@ bool _LoadScanline( XMVECTOR* pDestination, size_t count,
 
                 // http://msdn.microsoft.com/en-us/library/windows/desktop/bb970578.aspx
 
-                // Yí  = Y - 4096
-                // Cbí = Cb - 32768
-                // Crí = Cr - 32768
+                // YÅE = Y - 4096
+                // CbÅE= Cb - 32768
+                // CrÅE= Cr - 32768
 
-                // R = 1.1689Yí + 1.6023Crí
-                // G = 1.1689Yí - 0.3933Cbí - 0.8160Crí
-                // B = 1.1689Yí+ 2.0251Cbí
+                // R = 1.1689YÅE+ 1.6023CrÅE
+                // G = 1.1689YÅE- 0.3933CbÅE- 0.8160CrÅE
+                // B = 1.1689YÅE 2.0251CbÅE
 
                 int r = static_cast<int>( (76607 * y +              105006 * v + 32768) >> 16 );
                 int g = static_cast<int>( (76607 * y -  25772 * u -  53477 * v + 32768) >> 16 );

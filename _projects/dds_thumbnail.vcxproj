@@ -144,12 +144,32 @@
   <ItemGroup>
     <ClCompile Include="..\src\ClassFactory.cpp" />
     <ClCompile Include="..\src\dds_thumbnail_provider.cpp" />
+    <ClCompile Include="..\src\DirectXTex\BC.cpp" />
+    <ClCompile Include="..\src\DirectXTex\BC4BC5.cpp" />
+    <ClCompile Include="..\src\DirectXTex\BC6HBC7.cpp" />
+    <ClCompile Include="..\src\DirectXTex\BCDirectCompute.cpp" />
+    <ClCompile Include="..\src\DirectXTex\DirectXTexCompress.cpp" />
+    <ClCompile Include="..\src\DirectXTex\DirectXTexCompressGPU.cpp" />
+    <ClCompile Include="..\src\DirectXTex\DirectXTexConvert.cpp" />
+    <ClCompile Include="..\src\DirectXTex\DirectXTexD3D11.cpp" />
+    <ClCompile Include="..\src\DirectXTex\DirectXTexDDS.cpp" />
+    <ClCompile Include="..\src\DirectXTex\DirectXTexFlipRotate.cpp" />
+    <ClCompile Include="..\src\DirectXTex\DirectXTexImage.cpp" />
+    <ClCompile Include="..\src\DirectXTex\DirectXTexMipmaps.cpp" />
+    <ClCompile Include="..\src\DirectXTex\DirectXTexMisc.cpp" />
+    <ClCompile Include="..\src\DirectXTex\DirectXTexNormalMaps.cpp" />
+    <ClCompile Include="..\src\DirectXTex\DirectXTexPMAlpha.cpp" />
+    <ClCompile Include="..\src\DirectXTex\DirectXTexResize.cpp" />
+    <ClCompile Include="..\src\DirectXTex\DirectXTexTGA.cpp" />
+    <ClCompile Include="..\src\DirectXTex\DirectXTexUtil.cpp" />
+    <ClCompile Include="..\src\DirectXTex\DirectXTexWIC.cpp" />
     <ClCompile Include="..\src\dllmain.cpp" />
     <ClCompile Include="..\src\Reg.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\ClassFactory.h" />
     <ClInclude Include="..\src\dds_thumbnail_provider.h" />
+    <ClInclude Include="..\src\DirectXTex\DirectXTex.h" />
     <ClInclude Include="..\src\Reg.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

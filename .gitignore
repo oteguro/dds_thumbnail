@@ -1,0 +1,9 @@
+*.tlog
+*.lib
+*.obj
+*.pdb
+*.sdf
+*.suo
+*.opensdf
+Debug/
+x64/
