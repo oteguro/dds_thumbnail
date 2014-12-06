@@ -3,8 +3,12 @@
 // ----------------------------------------------------------------------------
 #include "dds_thumbnail_provider.h"
 #include <Shlwapi.h>
+#include <gdiplus.h>
+
+using namespace Gdiplus;
 
 #pragma comment(lib, "Shlwapi.lib")
+#pragma comment(lib, "gdiplus.lib")
 
 extern HINSTANCE g_hInst;
 extern long      g_cDllRef;
@@ -72,8 +76,23 @@ IFACEMETHODIMP DDSThumbnailProvider::Initialize(IStream *pStream, DWORD grfMode)
 #pragma region IThumbnailProvider
 IFACEMETHODIMP DDSThumbnailProvider::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE *pdwAlpha)
 {
+	*phbmp    = NULL;
+	*pdwAlpha = WTSAT_UNKNOWN;
 
-	return S_OK;
+	ULONG_PTR token;
+	GdiplusStartupInput input;
+	if(Ok == GdiplusStartup(&token, &input, NULL))
+	{
+		Bitmap * bitmapInstance = new Bitmap(128, 128);
+		if(bitmapInstance)
+		{
+			Color blk(0,0,0);
+			bitmapInstance->GetHBITMAP(blk, phbmp);
+		}
+	}
+	GdiplusShutdown(token);
+
+	return (phbmp) ? S_OK : E_NOTIMPL;
 }
 #pragma endregion
 

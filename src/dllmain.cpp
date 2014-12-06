@@ -7,8 +7,6 @@
 #include "ClassFactory.h"
 #include "Reg.h"
 
-
-// {DA0C8AA7-09FB-4790-81C5-DD69E2E076D7}
 const CLSID CLSID_dds_thumbnail_provider =
 { 0xda0c8aa7, 0x9fb, 0x4790, { 0x81, 0xc5, 0xdd, 0x69, 0xe2, 0xe0, 0x76, 0xd7 } };
 
