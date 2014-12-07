@@ -175,6 +175,7 @@
     <ClInclude Include="..\src\dds_thumbnail_provider.h" />
     <ClInclude Include="..\src\DirectXTex\DirectXTex.h" />
     <ClInclude Include="..\src\Reg.h" />
+    <ClInclude Include="..\src\scope_exit.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

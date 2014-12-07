@@ -106,5 +106,8 @@
     <ClInclude Include="..\src\DirectXTex\DirectXTex.h">
       <Filter>src\DirectXTex</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\scope_exit.h">
+      <Filter>header</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -8,6 +8,11 @@
 
 #pragma comment(lib, "windowscodecs.lib")
 
+namespace DirectX
+{
+	class ScratchImage;
+} // namespace DirectX 
+
 class DDSThumbnailProvider :
 	public IInitializeWithStream,
 	public IThumbnailProvider
@@ -22,7 +27,7 @@ public:
 	IFACEMETHODIMP Initialize(IStream *pStream, DWORD grfMode);
 
 	// IThumbnailProvider
-	IFACEMETHODIMP GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_ALPHATYPE *pdwAlpha);
+	IFACEMETHODIMP GetThumbnail(UINT cx, HBITMAP* phbmp, WTS_ALPHATYPE* pdwAlpha);
 
 	 DDSThumbnailProvider();
 
@@ -36,6 +41,12 @@ private:
 
 	// Provided during initialization.
 	IStream *m_pStream;
+
+	bool CreateHBITMAP_Image(UINT cx, HBITMAP* phbmp, WTS_ALPHATYPE* pdwAlpha, DirectX::ScratchImage& image);
+
+	bool CreateHBITMAP_Fill (UINT cx, HBITMAP* phbmp, WTS_ALPHATYPE* pdwAlpha, BYTE r, BYTE g, BYTE b, BYTE a = 0xff);
+
+	size_t DDSFileSize(IStream* pStream);
 
 }; // class DDSThumbnailProvider 
 
