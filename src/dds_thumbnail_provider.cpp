@@ -19,6 +19,7 @@ extern long      g_cDllRef;
 
 namespace
 {
+	// Is BC format? 
 	bool bcFormat(DXGI_FORMAT fmt)
 	{
 		DXGI_FORMAT bcs[] = 
@@ -56,6 +57,76 @@ namespace
 		return false;
 	}
 
+	inline float UintAsFloat(uint32_t val)
+	{
+		union
+		{
+			uint32_t m_uint;
+			float m_flt;
+		} un;
+		un.m_uint = val;
+		return un.m_flt;
+	}
+
+	template <class T> static inline uint32_t CountLeadingZeroBitsSlow(T value)
+	{
+		uint32_t count = 0U;
+		uint32_t const bitCount = sizeof(T) * 8;
+		T mask = T(1UL) << (bitCount - 1);
+		while (0 == (mask&value) && 0 != mask)
+		{
+			mask >>= 1;
+			count++;
+		}
+		return count;
+	}
+
+	uint32_t CountLeadingZeroBits(uint32_t value)
+	{
+		return CountLeadingZeroBitsSlow<uint32_t>(value);
+	}
+
+	float HalfToFloat(uint16_t value)
+	{
+		int32_t bsgn = (int32_t)(value >> 15) << 31;
+		int32_t rexp = (int32_t)(value >> 10) & 0x1f;
+		int32_t bexp = rexp + (127 - 15);
+		int32_t rmnt = (int32_t)(value & 0x03ff);
+
+		int32_t retval = 0;
+
+		if (rexp == 31)
+		{
+			if (rmnt == 0)
+			{	// inifinity
+				retval = bsgn | 0x7F800000;
+			}
+			else
+			{	// NaN
+				retval = bsgn | 0x7F800000 | (rmnt << 13U);
+			}
+		}
+		else if (rexp > 0)
+		{
+			retval = bsgn | (bexp << 23) | (rmnt << 13U);
+		}
+		else
+		{
+			if (rmnt)
+			{
+				int32_t const expShift = CountLeadingZeroBits(static_cast<uint32_t>(rmnt)) - 22;
+				int32_t const exp = bexp - expShift;
+				int32_t const bmnt = (rmnt << (13 + (expShift + 1))) & 0x7fffff;
+				retval = bsgn | (exp << 23U) | bmnt;
+			}
+			else
+			{
+				retval = bsgn;
+			}
+		}
+		return UintAsFloat(retval);
+	}
+
 	DirectX::ScratchImage Resize(int cx, DirectX::ScratchImage& image)
 	{
 		HRESULT hr;
@@ -88,12 +159,16 @@ void InflateFunction_FORMAT_R8G8B8A8_UNORM(UINT cx, LPBYTE lpb, const DirectX::I
 {
 	LPBYTE lps = (LPBYTE)(img->pixels);
 
-	for (UINT y = 0; y < cx; ++y)
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+	for (int y = 0; y < (int)cx; ++y)
 	{
+		int line = (int)cx - y - 1;
 		for (UINT x = 0; x < cx; ++x)
 		{
-			LPBYTE dst = &lpb[4 * ((cx - y - 1) * cx + x)];
-			LPBYTE src = &lps[4 * ((     y    ) * cx + x)];
+			LPBYTE dst = &lpb[4 * (line * cx + x)];
+			LPBYTE src = &lps[4 * (y    * cx + x)];
 
 			dst[0] = src[2];
 			dst[1] = src[1];
@@ -108,12 +183,16 @@ void InflateFunction_FORMAT_B8G8R8A8_UNORM(UINT cx, LPBYTE lpb, const DirectX::I
 {
 	LPBYTE lps = (LPBYTE)(img->pixels);
 
-	for (UINT y = 0; y < cx; ++y)
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+	for (int y = 0; y < (int)cx; ++y)
 	{
+		int line = (int)cx - y - 1;
 		for (UINT x = 0; x < cx; ++x)
 		{
-			LPBYTE dst = &lpb[4 * ((cx - y - 1) * cx + x)];
-			LPBYTE src = &lps[4 * ((     y    ) * cx + x)];
+			LPBYTE dst = &lpb[4 * (line * cx + x)];
+			LPBYTE src = &lps[4 * (y    * cx + x)];
 
 			dst[0] = src[0];
 			dst[1] = src[1];
@@ -128,12 +207,16 @@ void InflateFunction_FORMAT_B8G8R8X8_UNORM(UINT cx, LPBYTE lpb, const DirectX::I
 {
 	LPBYTE lps = (LPBYTE)(img->pixels);
 
-	for (UINT y = 0; y < cx; ++y)
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+	for (int y = 0; y < (int)cx; ++y)
 	{
+		int line = (int)cx - y - 1;
 		for (UINT x = 0; x < cx; ++x)
 		{
-			LPBYTE dst = &lpb[4 * ((cx - y - 1) * cx + x)];
-			LPBYTE src = &lps[4 * ((     y    ) * cx + x)];
+			LPBYTE dst = &lpb[4 * (line * cx + x)];
+			LPBYTE src = &lps[4 * (y    * cx + x)];
 
 			dst[0] = src[0];
 			dst[1] = src[1];
@@ -148,26 +231,175 @@ void InflateFunction_FORMAT_R8_UNORM(UINT cx, LPBYTE lpb, const DirectX::Image* 
 {
 	LPBYTE lps = (LPBYTE)(img->pixels);
 
-	for (UINT y = 0; y < cx; ++y)
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+	for (int y = 0; y < (int)cx; ++y)
 	{
+		int line = (int)cx - y - 1;
 		for (UINT x = 0; x < cx; ++x)
 		{
-			LPBYTE dst = &lpb[4 * ((cx - y - 1) * cx + x)];
-			LPBYTE src = &lps[1 * ((     y    ) * cx + x)];
+			LPBYTE dst = &lpb[4 * (line * cx + x)];
+			LPBYTE src = &lps[1 * (y    * cx + x)];
 
-			dst[0] = src[0];
-			dst[1] = src[0];
+			dst[0] = 0;
+			dst[1] = 0;
 			dst[2] = src[0];
 			dst[3] = 255;
 		}
 	}
 }
 
-// DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8_UNORM 
+// DXGI_FORMAT_R8_SNORM 
 void InflateFunction_FORMAT_R8_SNORM(UINT cx, LPBYTE lpb, const DirectX::Image* img)
 {
 	InflateFunction_FORMAT_R8_UNORM(cx, lpb, img);
 }
+
+// DXGI_FORMAT_R8G8_UNORM 
+void InflateFunction_FORMAT_R8G8_UNORM(UINT cx, LPBYTE lpb, const DirectX::Image* img)
+{
+	LPBYTE lps = (LPBYTE)(img->pixels);
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+	for (int y = 0; y < (int)cx; ++y)
+	{
+		int line = (int)cx - y - 1;
+		for (UINT x = 0; x < cx; ++x)
+		{
+			LPBYTE dst = &lpb[4 * (line * cx + x)];
+			LPBYTE src = &lps[2 * (y    * cx + x)];
+
+			dst[0] = 0;
+			dst[1] = src[1];
+			dst[2] = src[0];
+			dst[3] = 255;
+		}
+	}
+}
+
+// DXGI_FORMAT_R8G8_SNORM 
+void InflateFunction_FORMAT_R8G8_SNORM(UINT cx, LPBYTE lpb, const DirectX::Image* img)
+{
+	InflateFunction_FORMAT_R8G8_UNORM(cx, lpb, img);
+}
+
+// DXGI_FORMAT_R32G32B32A32_FLOAT 
+void InflateFunction_FORMAT_R32G32B32A32_FLOAT(UINT cx, LPBYTE lpb, const DirectX::Image* img)
+{
+	LPBYTE lps = (LPBYTE)(img->pixels);
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+	for (int y = 0; y < (int)cx; ++y)
+	{
+		int line = (int)cx - y - 1;
+		for (UINT x = 0; x < cx; ++x)
+		{
+			LPBYTE dst = &lpb[4  * (line * cx + x)];
+			LPBYTE src = &lps[16 * (y    * cx + x)];
+			float* pf = (float*)src;
+
+			float fr = pf[0]; if(fr<0.0f){fr=0.0f;} else if(fr>1.0f){fr=1.0f;};
+			float fg = pf[1]; if(fg<0.0f){fg=0.0f;} else if(fg>1.0f){fg=1.0f;};
+			float fb = pf[2]; if(fb<0.0f){fb=0.0f;} else if(fb>1.0f){fb=1.0f;};
+
+			dst[0] = (BYTE)(fb*255.0f);
+			dst[1] = (BYTE)(fg*255.0f);
+			dst[2] = (BYTE)(fr*255.0f);
+			dst[3] = 255;
+		}
+	}
+}
+
+// DXGI_FORMAT_R32G32_FLOAT 
+void InflateFunction_FORMAT_R32G32_FLOAT(UINT cx, LPBYTE lpb, const DirectX::Image* img)
+{
+	LPBYTE lps = (LPBYTE)(img->pixels);
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+	for (int y = 0; y < (int)cx; ++y)
+	{
+		int line = (int)cx - y - 1;
+		for (UINT x = 0; x < cx; ++x)
+		{
+			LPBYTE dst = &lpb[4 * (line * cx + x)];
+			LPBYTE src = &lps[8 * (y    * cx + x)];
+			float* pf = (float*)src;
+
+			float fr = pf[0]; if (fr<0.0f){ fr = 0.0f; } else if (fr > 1.0f){ fr = 1.0f; };
+			float fg = pf[1]; if (fg<0.0f){ fg = 0.0f; } else if (fg > 1.0f){ fg = 1.0f; };
+
+			dst[0] = 0;
+			dst[1] = (BYTE)(fg*255.0f);
+			dst[2] = (BYTE)(fr*255.0f);
+			dst[3] = 255;
+		}
+	}
+}
+
+// DXGI_FORMAT_R16G16B16A16_FLOAT 
+void InflateFunction_FORMAT_R16G16B16A16_FLOAT(UINT cx, LPBYTE lpb, const DirectX::Image* img)
+{
+	LPBYTE lps = (LPBYTE)(img->pixels);
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+	for (int y = 0; y < (int)cx; ++y)
+	{
+		int line = (int)cx - y - 1;
+		for (UINT x = 0; x < cx; ++x)
+		{
+			LPBYTE dst = &lpb[4 * (line * cx + x)];
+			LPBYTE src = &lps[8 * (y    * cx + x)];
+			uint16_t* ph = (uint16_t*)src;
+
+			float fr = HalfToFloat(ph[0]); if (fr<0.0f){ fr = 0.0f; } else if (fr > 1.0f){ fr = 1.0f; };
+			float fg = HalfToFloat(ph[1]); if (fg<0.0f){ fg = 0.0f; } else if (fg > 1.0f){ fg = 1.0f; };
+			float fb = HalfToFloat(ph[2]); if (fb<0.0f){ fb = 0.0f; } else if (fb > 1.0f){ fb = 1.0f; };
+
+			dst[0] = (BYTE)(fb*255.0f);
+			dst[1] = (BYTE)(fg*255.0f);
+			dst[2] = (BYTE)(fr*255.0f);
+			dst[3] = 255;
+		}
+	}
+}
+
+// DXGI_FORMAT_R16G16_FLOAT 
+void InflateFunction_FORMAT_R16G16_FLOAT(UINT cx, LPBYTE lpb, const DirectX::Image* img)
+{
+	LPBYTE lps = (LPBYTE)(img->pixels);
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+	for (int y = 0; y < (int)cx; ++y)
+	{
+		int line = (int)cx - y - 1;
+		for (UINT x = 0; x < cx; ++x)
+		{
+			LPBYTE dst = &lpb[4 * (line * cx + x)];
+			LPBYTE src = &lps[4 * (y    * cx + x)];
+			uint16_t* ph = (uint16_t*)src;
+
+			float fr = HalfToFloat(ph[0]); if (fr<0.0f){ fr = 0.0f; } else if (fr > 1.0f){ fr = 1.0f; };
+			float fg = HalfToFloat(ph[1]); if (fg<0.0f){ fg = 0.0f; } else if (fg > 1.0f){ fg = 1.0f; };
+
+			dst[0] = 0;
+			dst[1] = (BYTE)(fg*255.0f);
+			dst[2] = (BYTE)(fr*255.0f);
+			dst[3] = 255;
+		}
+	}
+}
+
 
 DDSThumbnailProvider::DDSThumbnailProvider()
 	: m_cRef   (1)
@@ -250,7 +482,7 @@ IFACEMETHODIMP DDSThumbnailProvider::GetThumbnail(UINT cx, HBITMAP* phbmp, WTS_A
 
 	// メモリブロックの確保. 
 	uint8_t* ddsBlock = reinterpret_cast<uint8_t*>(malloc(fileSize));
-	SCOPE_EXIT(ddsBlock);
+	SCOPE_EXIT(if(ddsBlock){free(ddsBlock);});
 
 	// DDSイメージの読み込み. 
 	ULONG fileRead;
@@ -358,12 +590,23 @@ bool DDSThumbnailProvider::CreateHBITMAP_Image(UINT cx, HBITMAP* phbmp, WTS_ALPH
 
 		{ DXGI_FORMAT_R8_UNORM,               InflateFunction_FORMAT_R8_UNORM       },
 		{ DXGI_FORMAT_R8_SNORM,               InflateFunction_FORMAT_R8_SNORM       },
-// 		{ DXGI_FORMAT_R8G8_UNORM,             InflateFunction_FORMAT_R8G8_UNORM     },
-// 		{ DXGI_FORMAT_R8G8_SNORM,             InflateFunction_FORMAT_R8G8_SNORM     },
+
+		{ DXGI_FORMAT_R8G8_TYPELESS,          InflateFunction_FORMAT_R8G8_SNORM     },
+		{ DXGI_FORMAT_R8G8_UNORM,             InflateFunction_FORMAT_R8G8_UNORM     },
+		{ DXGI_FORMAT_R8G8_SNORM,             InflateFunction_FORMAT_R8G8_SNORM     },
+		{ DXGI_FORMAT_R8G8_UINT,              InflateFunction_FORMAT_R8G8_UNORM     },
+		{ DXGI_FORMAT_R8G8_SINT,              InflateFunction_FORMAT_R8G8_SNORM     },
+
+		{ DXGI_FORMAT_R32G32B32A32_FLOAT,     InflateFunction_FORMAT_R32G32B32A32_FLOAT },
+		{ DXGI_FORMAT_R32G32_FLOAT,           InflateFunction_FORMAT_R32G32_FLOAT   },
+
+		{ DXGI_FORMAT_R16G16B16A16_FLOAT,     InflateFunction_FORMAT_R16G16B16A16_FLOAT },
+		{ DXGI_FORMAT_R16G16_FLOAT,           InflateFunction_FORMAT_R16G16_FLOAT   },
+
 	};
 	size_t n = sizeof(inflateFunctions) / sizeof(InflatePixelFunctions);
 
-	for(int x=0; x<n; ++x)
+	for(size_t x=0; x<n; ++x)
 	{
 		if(inflateFunctions[x].format == fmt)
 		{

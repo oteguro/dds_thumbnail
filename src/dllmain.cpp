@@ -69,13 +69,13 @@ STDAPI DllRegisterServer(void)
 	if (SUCCEEDED(hr))
 	{
 		// Register the thumbnail handler. The thumbnail handler is associated
-		// with the .recipe file class.
-		hr = RegisterShellExtThumbnailHandler(L".hoge", // L".dds"
+		// with the .dds file class.
+		hr = RegisterShellExtThumbnailHandler((L".dds"),
 			CLSID_dds_thumbnail_provider);
 		if (SUCCEEDED(hr))
 		{
 			// This tells the shell to invalidate the thumbnail cache. It is 
-			// important because any .recipe files viewed before registering 
+			// important because any .dds files viewed before registering 
 			// this handler would otherwise show cached blank thumbnails.
 			SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
 		}
@@ -100,7 +100,7 @@ STDAPI DllUnregisterServer(void)
 	if (SUCCEEDED(hr))
 	{
 		// Unregister the thumbnail handler.
-		hr = UnregisterShellExtThumbnailHandler(L".hoge"); //(L".dds")
+		hr = UnregisterShellExtThumbnailHandler((L".dds"));
 	}
 
 	return hr;
