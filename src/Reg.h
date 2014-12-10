@@ -110,3 +110,46 @@ HRESULT RegisterShellExtThumbnailHandler(PCWSTR pszFileType, const CLSID& clsid)
 //   HKCR\<File Type>\shellex\{e357fccd-a995-4576-b01f-234630154e96}.
 //
 HRESULT UnregisterShellExtThumbnailHandler(PCWSTR pszFileType);
+
+
+//
+//   FUNCTION: RegisterShellExtInfotipHandler
+//
+//   PURPOSE: Register the infotip handler.
+//
+//   PARAMETERS:
+//   * pszFileType - The file type that the context menu handler is 
+//     associated with. For example, '*' means all file types; '.txt' means 
+//     all .txt files. The parameter must not be NULL.
+//   * clsid - Class ID of the component
+//
+//   NOTE: The function creates the following key in the registry.
+//
+//   HKCR
+//   {
+//      NoRemove <File Type>
+//      {
+//          NoRemove shellex
+//          {
+//              {00021500-0000-0000-C000-000000000046} = s '{<CLSID>}'
+//          }
+//      }
+//   }
+//
+HRESULT RegisterShellExtInfotipHandler(PCWSTR pszFileType, const CLSID& clsid);
+
+
+//
+//   FUNCTION: UnregisterShellExtInfotipHandler
+//
+//   PURPOSE: Unregister the infotip handler.
+//
+//   PARAMETERS:
+//   * pszFileType - The file type that the context menu handler is 
+//     associated with. For example, '*' means all file types; '.txt' means 
+//     all .txt files. The parameter must not be NULL.
+//
+//   NOTE: The function removes the registry key
+//   HKCR\<File Type>\shellex\{00021500-0000-0000-C000-000000000046}.
+//
+HRESULT UnregisterShellExtInfotipHandler(PCWSTR pszFileType);

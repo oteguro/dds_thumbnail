@@ -83,3 +83,79 @@ IFACEMETHODIMP ClassFactory::LockServer(BOOL fLock)
 	}
 	return S_OK;
 }
+
+
+ClassFactory2::ClassFactory2() : m_cRef(1)
+{
+	InterlockedIncrement(&g_cDllRef);
+}
+
+ClassFactory2::~ClassFactory2()
+{
+	InterlockedDecrement(&g_cDllRef);
+}
+
+//
+// IUnknown
+//
+IFACEMETHODIMP ClassFactory2::QueryInterface(REFIID riid, void **ppv)
+{
+	static const QITAB qit[] =
+	{
+		QITABENT(ClassFactory2, IClassFactory),
+		{ 0 },
+	};
+	return QISearch(this, qit, riid, ppv);
+}
+
+IFACEMETHODIMP_(ULONG) ClassFactory2::AddRef()
+{
+	return InterlockedIncrement(&m_cRef);
+}
+
+IFACEMETHODIMP_(ULONG) ClassFactory2::Release()
+{
+	ULONG cRef = InterlockedDecrement(&m_cRef);
+	if (0 == cRef)
+	{
+		delete this;
+	}
+	return cRef;
+}
+
+// 
+// IClassFactory
+//
+IFACEMETHODIMP ClassFactory2::CreateInstance(IUnknown *pUnkOuter, REFIID riid, void **ppv)
+{
+	HRESULT hr = CLASS_E_NOAGGREGATION;
+
+	// pUnkOuter is used for aggregation. We do not support it in the sample.
+	if (pUnkOuter == NULL)
+	{
+		hr = E_OUTOFMEMORY;
+
+		// Create the COM component.
+		DDSFileInfoProvider *pExt = new (std::nothrow) DDSFileInfoProvider();
+		if (pExt)
+		{
+			// Query the specified interface.
+			hr = pExt->QueryInterface(riid, ppv);
+			pExt->Release();
+		}
+	}
+	return hr;
+}
+
+IFACEMETHODIMP ClassFactory2::LockServer(BOOL fLock)
+{
+	if (fLock)
+	{
+		InterlockedIncrement(&g_cDllRef);
+	}
+	else
+	{
+		InterlockedDecrement(&g_cDllRef);
+	}
+	return S_OK;
+}

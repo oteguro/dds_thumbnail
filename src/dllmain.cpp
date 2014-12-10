@@ -10,6 +10,11 @@
 const CLSID CLSID_dds_thumbnail_provider =
 { 0xda0c8aa7, 0x9fb, 0x4790, { 0x81, 0xc5, 0xdd, 0x69, 0xe2, 0xe0, 0x76, 0xd7 } };
 
+
+const CLSID CLSID_dds_fileinfo_provider =
+{ 0xea3d8ea8, 0x7919, 0x4bba, { 0xab, 0xdf, 0xe6, 0xc4, 0xe1, 0x95, 0x8f, 0x38 } };
+
+
 HINSTANCE g_hInst		= NULL;
 long      g_cDllRef		= 0;
 
@@ -43,6 +48,17 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, void **ppv)
 			pClassFactory->Release();
 		}
 	}
+	if (IsEqualCLSID(CLSID_dds_fileinfo_provider, rclsid))
+	{
+		hr = E_OUTOFMEMORY;
+		ClassFactory2 *pClassFactory = new ClassFactory2();
+		if (pClassFactory)
+		{
+			hr = pClassFactory->QueryInterface(riid, ppv);
+			pClassFactory->Release();
+		}
+	}
+
 	return hr;
 }
 
@@ -81,6 +97,15 @@ STDAPI DllRegisterServer(void)
 		}
 	}
 
+	// Register the component.
+	hr = RegisterInprocServer(szModule, CLSID_dds_fileinfo_provider,
+		L"dds_fileinfo.DDSFileInfoProvider Class",
+		L"Apartment");
+	if (SUCCEEDED(hr))
+	{
+		hr = RegisterShellExtInfotipHandler(L".dds", CLSID_dds_fileinfo_provider);
+	}
+
 	return hr;
 }
 
@@ -101,6 +126,14 @@ STDAPI DllUnregisterServer(void)
 	{
 		// Unregister the thumbnail handler.
 		hr = UnregisterShellExtThumbnailHandler((L".dds"));
+	}
+
+	// Unregister the component.
+	hr = UnregisterInprocServer(CLSID_dds_fileinfo_provider);
+	if (SUCCEEDED(hr))
+	{
+		// Unregister the thumbnail handler.
+		hr = UnregisterShellExtInfotipHandler((L".dds"));
 	}
 
 	return hr;
